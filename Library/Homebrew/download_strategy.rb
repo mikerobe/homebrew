@@ -64,7 +64,7 @@ class CurlDownloadStrategy < AbstractDownloadStrategy
         end
       end
     else
-      puts "File already downloaded in #{File.dirname(@tarball_path)}"
+      puts "Already downloaded: #{@tarball_path}"
     end
     return @tarball_path # thus performs checksum verification
   end
@@ -91,7 +91,7 @@ class CurlDownloadStrategy < AbstractDownloadStrategy
       chdir
     when /^\xFD7zXZ\x00/ # xz compressed
       raise "You must install XZutils: brew install xz" unless system "/usr/bin/which -s xz"
-      safe_system "xz -dc #{@tarball_path} | /usr/bin/tar xf -"
+      safe_system "xz -dc \"#{@tarball_path}\" | /usr/bin/tar xf -"
       chdir
     when '____pkg'
       safe_system '/usr/sbin/pkgutil', '--expand', @tarball_path, File.basename(@url)
