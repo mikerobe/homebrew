@@ -2,13 +2,14 @@ require 'formula'
 
 class Goffice < Formula
   homepage 'http://projects.gnome.org/gnumeric/'
-  url 'http://ftp.gnome.org/pub/GNOME/sources/goffice/0.8/goffice-0.8.17.tar.bz2'
-  sha256 'dd8caef5fefffbc53938fa619de9f58e7c4dc71a1803de134065d42138a68c06'
+  url 'http://ftp.acc.umu.se/pub/GNOME/sources/goffice/0.9/goffice-0.9.3.tar.xz'
+  sha256 '3024f94b334a45ff3fb3d3d3df6c7076b062fb3ed48286cb1516d65537642a51'
 
   depends_on 'pkg-config' => :build
   depends_on 'gettext'
   depends_on 'intltool'
   depends_on 'libgsf'
+  depends_on 'librsvg'
   depends_on 'gtk+'
 
   def install

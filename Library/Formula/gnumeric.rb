@@ -2,8 +2,8 @@ require 'formula'
 
 class Gnumeric < Formula
   homepage 'http://projects.gnome.org/gnumeric/'
-  url 'http://ftp.gnome.org/pub/GNOME/sources/gnumeric/1.10/gnumeric-1.10.17.tar.bz2'
-  sha256 'bb2a13424811d132fe1be7a6e82d61157a18c630fc91b7409503dbd7ef600ea5'
+  url 'http://ftp.gnome.org/pub/GNOME/sources/gnumeric/1.11/gnumeric-1.11.3.tar.xz'
+  sha256 'e2f00e4753e8dfe95b7a98a6c254b1c23dca9835303692805ff463a2d66274c1'
 
   depends_on 'pkg-config' => :build
   depends_on 'gettext'
@@ -12,8 +12,9 @@ class Gnumeric < Formula
   depends_on 'rarian'
 
   def install
-    system "./configure", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}"
+    system "CFLAGS=-Wformat-security",
+        "./configure", "--disable-dependency-tracking",
+        "--prefix=#{prefix}"
     system "make install"
   end
 end

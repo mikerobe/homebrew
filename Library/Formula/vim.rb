@@ -8,8 +8,13 @@ class Vim < Formula
     system "./configure", "--prefix=#{prefix}", "--enable-cscope",
                           "--enable-rubyinterp",
                           "--enable-python3interp=yes",
-                          "--enable-perlinterp=yes"
+                          "--enable-perlinterp=yes",
+                          "--enable-multibyte"
     system "make install"
+  end
+
+  def patches
+      "https://retracile.net/raw-attachment/blog/2011/08/23/21.30/vim-7.3.285-breakindent.patch"
   end
 
   def test
