@@ -1,3 +1,5 @@
+require 'set'
+
 ## This file defines dependencies and requirements.
 ##
 ## A dependency is a formula that another formula needs to install.
@@ -21,18 +23,27 @@ class DependencyCollector
 
   def initialize
     @deps = Dependencies.new
-    @external_deps = []
+    @external_deps = Set.new
   end
 
   def add spec
     tag = nil
     spec, tag = spec.shift if spec.is_a? Hash
 
-    dep = case spec
-    when :x11, :libpng
-      X11Dependency.new(tag)
+    dep = parse_spec(spec, tag)
+    # Some symbol specs are conditional, and resolve to nil if there is no
+    # dependency needed for the current platform.
+    return if dep.nil?
+    # Add dep to the correct bucket
+    (dep.is_a?(Requirement) ? @external_deps : @deps) << dep
+  end
+
+private
+
+  def parse_spec spec, tag
+    case spec
     when Symbol
-      raise "Unsupported special dependency #{spec}"
+      parse_symbol_spec(spec, tag)
     when String
       if LANGUAGE_MODULES.include? tag
         LanguageModuleDependency.new(tag, spec)
@@ -46,8 +57,18 @@ class DependencyCollector
     else
       raise "Unsupported type #{spec.class} for #{spec}"
     end
+  end
 
-    (dep.is_a?(Requirement) ? @external_deps : @deps) << dep
+  def parse_symbol_spec spec, tag
+    case spec
+    when :autoconf, :automake, :bsdmake, :libtool
+      # Xcode no longer provides autotools or some other build tools
+      Dependency.new(spec.to_s) unless MacOS::Xcode.provides_autotools?
+    when :x11, :libpng
+      X11Dependency.new(tag)
+    else
+      raise "Unsupported special dependency #{spec}"
+    end
   end
 
 end
@@ -99,6 +120,15 @@ class Requirement
   def satisfied?; false; end
   def fatal?; false; end
   def message; ""; end
+  def modify_build_environment; nil end
+
+  def eql?(other)
+    other.is_a? self.class and hash == other.hash
+  end
+
+  def hash
+    @message.hash
+  end
 end
 
 
@@ -167,6 +197,10 @@ class X11Dependency < Requirement
     Please install the latest version of XQuartz:
       https://xquartz.macosforge.org
     EOS
+  end
+
+  def modify_build_environment
+    ENV.x11
   end
 
 end

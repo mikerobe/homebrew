@@ -10,6 +10,7 @@ class Vim < Formula
                           "--enable-python3interp=yes",
                           "--enable-perlinterp=yes",
                           "--enable-multibyte"
+                          "--with-features=huge"
     system "make install"
   end
 

@@ -7,6 +7,7 @@ class Glib < Formula
   url 'ftp://ftp.gnome.org//pub/gnome/sources/glib/2.33/glib-2.33.1.tar.xz'
   sha256 '54fd1653c5ad129549ec42970253ff6b2e6e26c8a08351d92f0841a83f1b6d46'
 
+  depends_on 'pkg-config' => :build
   depends_on 'xz' => :build
   depends_on 'gettext'
   depends_on 'libffi'
@@ -26,7 +27,7 @@ class Glib < Formula
         https://raw.github.com/gist/2246469/591586214960f7647b1454e7d547c3935988a0a7/glib-configurable-paths.diff
       ]}
     p[:p0] = %W[
-        https://trac.macports.org/export/92183/trunk/dports/devel/glib2/files/patch-configure.diff
+        https://trac.macports.org/export/95596/trunk/dports/devel/glib2/files/patch-configure.diff
       ] if ARGV.build_universal?
     p
   end
@@ -53,21 +54,10 @@ class Glib < Formula
       --localstatedir=#{var}
     ]
 
-    # glib and pkg-config 0.26 have circular dependencies, so we should build glib without pkg-config
-    # The pkg-config dependency can be eliminated if certain env variables are set
-    # Note that this *may* need to be updated if any new dependencies are added in the future
-    # See http://permalink.gmane.org/gmane.comp.package-management.pkg-config/627
-    ENV['ZLIB_CFLAGS'] = ''
-    ENV['ZLIB_LIBS'] = '-lz'
-    # libffi include paths are dramatically ugly
-    libffi = Formula.factory('libffi')
-    ENV['LIBFFI_CFLAGS'] = "-I #{libffi.lib}/libffi-#{libffi.version}/include"
-    ENV['LIBFFI_LIBS'] = '-lffi'
-
     system "./configure", *args
 
     if ARGV.build_universal?
-      system "curl 'https://trac.macports.org/export/92179/trunk/dports/devel/glib2/files/config.h.ed' | ed - config.h"
+      system "curl 'https://trac.macports.org/export/95596/trunk/dports/devel/glib2/files/config.h.ed' | ed - config.h"
     end
 
     system "make"
@@ -113,8 +103,9 @@ class Glib < Formula
             return (strcmp(str, result_2) == 0) ? 0 : 1;
         }
         EOS
-      system ENV.cc, "-o", "test", "test.c",
-        *`pkg-config --cflags --libs glib-2.0`.split
+      flags = *`pkg-config --cflags --libs glib-2.0`.split
+      flags += ENV.cflags.split
+      system ENV.cc, "-o", "test", "test.c", *flags
       system "./test"
     end
   end

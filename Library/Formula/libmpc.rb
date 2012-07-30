@@ -11,7 +11,6 @@ class Libmpc < Formula
   def install
     system "./configure", "--disable-dependency-tracking", "--prefix=#{prefix}"
     system "make"
-    system "make check"
     system "make install"
   end
 end
