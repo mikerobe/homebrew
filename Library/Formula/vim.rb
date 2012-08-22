@@ -5,9 +5,12 @@ class Vim < Formula
   homepage 'http://www.vim.org'
 
   def install
-    system "./configure", "--prefix=#{prefix}", "--enable-cscope",
+    system "./configure", "--prefix=#{prefix}",
+                          "--enable-cscope",
+                          "--enable-conceal",
                           "--enable-rubyinterp",
                           "--enable-python3interp=yes",
+                          "--enable-pythoninterp=yes",
                           "--enable-perlinterp=yes",
                           "--enable-multibyte"
                           "--with-features=huge"

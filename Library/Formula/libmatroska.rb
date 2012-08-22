@@ -9,8 +9,15 @@ class Libmatroska < Formula
   depends_on 'libebml'
 
   def install
+    ENV['CXX'] = 'g++-4.7'
+    ENV['CC'] = 'gcc-4.7'
+    ENV['LD'] = 'gcc-4.7'
+    ENV['CXXFLAGS'] = '-Os -Wall -Wextra -pipe -Woverloaded-virtual -std=c++11'
+    ENV['CFLAGS'] = '-Wall -Wextra -pipe'
+
     cd 'make/linux' do
-      system "make", "install", "prefix=#{prefix}", "CXX=#{ENV.cxx}"
+      system "make", "install", "prefix=#{prefix}", "CXX=#{ENV.cxx}",
+          'CXXFLAGS=-std=c++11'
     end
   end
 end

@@ -19,15 +19,15 @@ end
 
 class Boost < Formula
   homepage 'http://www.boost.org'
-  url 'http://downloads.sourceforge.net/project/boost/boost/1.49.0/boost_1_49_0.tar.bz2'
-  md5 '0d202cb811f934282dea64856a175698'
+  url 'http://downloads.sourceforge.net/project/boost/boost/1.50.0/boost_1_50_0.tar.bz2'
+  md5 '52dd00be775e689f55a987baebccc462'
 
   head 'http://svn.boost.org/svn/boost/trunk'
 
-  bottle do
-    sha1 '6b706780670a8bec5b3e0355f5dfeeaa37d9a41e' => :lion
-    sha1 '46945515d520009fbbc101e4ae19f28db1433752' => :snowleopard
-  end
+  # bottle do
+  #   sha1 '6b706780670a8bec5b3e0355f5dfeeaa37d9a41e' => :lion
+  #   sha1 '46945515d520009fbbc101e4ae19f28db1433752' => :snowleopard
+  # end
 
   depends_on UniversalPython.new if needs_universal_python?
   depends_on "icu4c" if ARGV.include? "--with-icu"
@@ -47,6 +47,12 @@ class Boost < Formula
   end
 
   def install
+    ENV['CXX'] = 'g++-4.7'
+    ENV['CC'] = 'gcc-4.7'
+    ENV['LD'] = 'gcc-4.7'
+    ENV['CXXFLAGS'] = '-Os -Wall -Wextra -pipe -Woverloaded-virtual -std=c++11'
+    ENV['CFLAGS'] = '-Wall -Wextra -pipe'
+
     # Adjust the name the libs are installed under to include the path to the
     # Homebrew lib directory so executables will work when installed to a
     # non-/usr/local location.
@@ -89,8 +95,17 @@ class Boost < Formula
 
     args << "address-model=32_64" << "architecture=x86" << "pch=off" if ARGV.include? "--universal"
     args << "--without-python" if ARGV.include? "--without-python"
+    # args << "toolset=clang"
+    args << 'cxxflags="-std=c++11"'
+    # args << 'cxxflags="-lstdc++"'
+    # args << 'linkflags="-lstdc++"'
 
     system "./bootstrap.sh", *bargs
+    # system "sed -i -e 's#using darwin ;#using darwin : : g++-4.7 ;#' project-config.jam"
     system "./bjam", *args
+  end
+
+  def patches
+      { :p0 => "https://svn.boost.org/trac/boost/raw-attachment/ticket/4999/fix4999.patch" }
   end
 end

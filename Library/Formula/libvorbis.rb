@@ -18,6 +18,12 @@ class Libvorbis < Formula
   end
 
   def install
+    ENV['CXX'] = 'g++-4.7'
+    ENV['CC'] = 'gcc-4.7'
+    ENV['LD'] = 'gcc-4.7'
+    ENV['CXXFLAGS'] = '-Os -Wall -Wextra -pipe -Woverloaded-virtual -std=c++11'
+    ENV['CFLAGS'] = '-Wall -Wextra -pipe'
+
     system "./autogen.sh" if ARGV.build_head?
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}"
