@@ -11,7 +11,7 @@ class Libvorbis < Formula
   depends_on 'pkg-config' => :build
   depends_on 'libogg'
 
-  if ARGV.build_head?
+  if build.head?
     depends_on :autoconf
     depends_on :automake
     depends_on :libtool
@@ -24,7 +24,7 @@ class Libvorbis < Formula
     ENV['CXXFLAGS'] = '-Os -Wall -Wextra -pipe -Woverloaded-virtual -std=c++11'
     ENV['CFLAGS'] = '-Wall -Wextra -pipe'
 
-    system "./autogen.sh" if ARGV.build_head?
+    system "./autogen.sh" if build.head?
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}"
     system "make install"
