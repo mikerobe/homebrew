@@ -29,9 +29,6 @@ class Formula
     @name = name
     validate_variable :name
 
-    # Legacy formulae can set specs via class ivars
-    ensure_specs_set if @stable.nil?
-
     # If a checksum or version was set in the DSL, but no stable URL
     # was defined, make @stable nil and save callers some trouble
     @stable = nil if @stable and @stable.url.nil?
@@ -59,29 +56,11 @@ class Formula
     # If we got an explicit path, use that, else determine from the name
     @path = path.nil? ? self.class.path(name) : Pathname.new(path)
     @downloader = download_strategy.new(name, @active_spec)
-  end
 
-  # Derive specs from class ivars
-  def ensure_specs_set
-    set_instance_variable :url
-    set_instance_variable :version
-    set_instance_variable :md5
-    set_instance_variable :sha1
-    set_instance_variable :sha256
-
-    unless @url.nil?
-      @stable = SoftwareSpec.new
-      @stable.url(@url)
-      @stable.version(@version)
-      @stable.md5(@md5)
-      @stable.sha1(@sha1)
-      @stable.sha256(@sha256)
-    end
-
-    if @head.kind_of? String
-      url = @head
-      @head = HeadSoftwareSpec.new
-      @head.url(url, self.class.instance_variable_get("@specs"))
+    # Combine DSL `option` and `def options`
+    options.each do |opt, desc|
+      # make sure to strip "--" from the start of options
+      self.class.build.add opt[/--(.+)$/, 1], desc
     end
   end
 
@@ -126,10 +105,15 @@ class Formula
     end
   end
 
+  def installed_version
+    require 'keg'
+    Keg.new(installed_prefix).version
+  end
+
   def prefix
     validate_variable :name
     validate_variable :version
-    HOMEBREW_CELLAR+@name+@version
+    HOMEBREW_CELLAR/@name/@version
   end
   def rack; prefix.parent end
 
@@ -159,6 +143,10 @@ class Formula
   # plist name, i.e. the name of the launchd service
   def plist_name; 'homebrew.mxcl.'+name end
   def plist_path; prefix+(plist_name+'.plist') end
+
+  def build
+    self.class.build
+  end
 
   # Use the @active_spec to detect the download strategy.
   # Can be overriden to force a custom download strategy
@@ -191,7 +179,12 @@ class Formula
   # rarely, you don't want your library symlinked into the main prefix
   # see gettext.rb for an example
   def keg_only?
-    self.class.keg_only_reason || false
+    kor = self.class.keg_only_reason
+    not kor.nil? and kor.valid?
+  end
+
+  def keg_only_reason
+    self.class.keg_only_reason
   end
 
   def fails_with? cc
@@ -296,24 +289,27 @@ class Formula
     Dir["#{HOMEBREW_REPOSITORY}/Library/Formula/*.rb"].map{ |f| File.basename f, '.rb' }.sort
   end
 
-  # an array of all Formula, instantiated
-  def self.all
-    map{ |f| f }
-  end
-  def self.map
-    rv = []
-    each{ |f| rv << yield(f) }
-    rv
-  end
   def self.each
-    names.each do |n|
-      begin
-        yield Formula.factory(n)
-      rescue
+    names.each do |name|
+      yield begin
+        Formula.factory(name)
+      rescue => e
         # Don't let one broken formula break commands. But do complain.
-        onoe "Formula #{n} will not import."
+        onoe "Failed to import: #{name}"
+        next
       end
     end
+  end
+  class << self
+    include Enumerable
+  end
+  def self.all
+    opoo "Formula.all is deprecated, simply use Formula.map"
+    map
+  end
+
+  def self.installed
+    HOMEBREW_CELLAR.children.map{ |rack| factory(rack.basename) rescue nil }.compact
   end
 
   def inspect
@@ -374,20 +370,22 @@ class Formula
     else
       name = Formula.canonical_name(name)
       # If name was a path or mapped to a cached formula
-      if name.include? "/"
-        require name
 
+      if name.include? "/"
         # require allows filenames to drop the .rb extension, but everything else
         # in our codebase will require an exact and fullpath.
         name = "#{name}.rb" unless name =~ /\.rb$/
 
         path = Pathname.new(name)
         name = path.stem
+
+        require path unless Object.const_defined? self.class_s(name)
+
         install_type = :from_path
         target_file = path.to_s
       else
         # For names, map to the path and then require
-        require Formula.path(name)
+        require Formula.path(name) unless Object.const_defined? self.class_s(name)
         install_type = :from_name
       end
     end
@@ -405,7 +403,7 @@ class Formula
 
     return klass.new(name) if install_type == :from_name
     return klass.new(name, target_file)
-  rescue LoadError
+  rescue LoadError, NameError
     raise FormulaUnavailableError.new(name)
   end
 
@@ -440,6 +438,12 @@ class Formula
       f_dep = Formula.factory dep.to_s
       expand_deps(f_dep) << f_dep
     end
+  end
+
+  def recursive_requirements
+    reqs = recursive_deps.map { |dep| dep.requirements }.to_set
+    reqs << requirements
+    reqs.flatten
   end
 
 protected
@@ -539,7 +543,7 @@ private
 
   def validate_variable name
     v = instance_variable_get("@#{name}")
-    raise "Invalid @#{name}" if v.to_s.empty? or v =~ /\s/
+    raise "Invalid @#{name}" if v.to_s.empty? or v.to_s =~ /\s/
   end
 
   def set_instance_variable(type)
@@ -577,6 +581,10 @@ private
           return @stable ? @stable.#{cksum} : @#{cksum}
         end
       }
+    end
+
+    def build
+      @build ||= BuildOptions.new(ARGV)
     end
 
     def url val=nil, specs=nil
@@ -630,15 +638,24 @@ private
       dependencies.add(dep)
     end
 
+    def option name, description=nil
+      # Support symbols
+      name = name.to_s
+      raise "Option name is required." if name.empty?
+      raise "Options should not start with dashes." if name[0, 1] == "-"
+      build.add name, description
+    end
+
     def conflicts_with formula, opts={}
       message = <<-EOS.undent
       #{formula} cannot be installed alongside #{name.downcase}.
       EOS
       message << "This is because #{opts[:because]}\n" if opts[:because]
-      if !ARGV.force? then message << <<-EOS.undent
-      Please `brew unlink` or `brew uninstall` #{formula} before continuing.
-      To install anyway, use:
-        brew install --force
+      unless ARGV.force? then message << <<-EOS.undent
+        Please `brew unlink #{formula}` before continuing. Unlinking removes
+        the formula's symlinks from #{HOMEBREW_PREFIX}. You can link the
+        formula again after the install finishes. You can --force this install
+        but the build may fail or cause obscure side-effects in the end-binary.
         EOS
       end
 

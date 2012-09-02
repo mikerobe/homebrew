@@ -20,30 +20,27 @@ end
 class Boost < Formula
   homepage 'http://www.boost.org'
   url 'http://downloads.sourceforge.net/project/boost/boost/1.50.0/boost_1_50_0.tar.bz2'
-  md5 '52dd00be775e689f55a987baebccc462'
+  sha1 'ee06f89ed472cf369573f8acf9819fbc7173344e'
 
   head 'http://svn.boost.org/svn/boost/trunk'
 
-  # bottle do
-  #   sha1 '6b706780670a8bec5b3e0355f5dfeeaa37d9a41e' => :lion
-  #   sha1 '46945515d520009fbbc101e4ae19f28db1433752' => :snowleopard
-  # end
+  bottle do
+    sha1 '06c7e19ec8d684c35fb035e6326df6393e46dce2' => :mountainlion
+    sha1 '25ef1d7af5f6f9783313370fd8115902b24c5eeb' => :lion
+    sha1 '4508c9afcb14a15b6b3c7db4cdfb7bd3f8e1c9bc' => :snowleopard
+  end
+
+  option :universal
+  option 'with-mpi', 'Enable MPI support'
+  option 'without-python', 'Build without Python'
+  option 'with-icu', 'Build regexp engine with icu support'
 
   depends_on UniversalPython.new if needs_universal_python?
-  depends_on "icu4c" if ARGV.include? "--with-icu"
+  depends_on "icu4c" if build.include? "with-icu"
 
   fails_with :llvm do
     build 2335
     cause "Dropped arguments to functions when linking with boost"
-  end
-
-  def options
-    [
-      ["--with-mpi", "Enable MPI support"],
-      ["--universal", "Build universal binaries"],
-      ["--without-python", "Build without Python"],
-      ["--with-icu", "Build regexp engine with icu support"],
-    ]
   end
 
   def install
@@ -74,13 +71,13 @@ class Boost < Formula
     # Force boost to compile using the appropriate GCC version
     open("user-config.jam", "a") do |file|
       file.write "using darwin : : #{ENV.cxx} ;\n"
-      file.write "using mpi ;\n" if ARGV.include? '--with-mpi'
+      file.write "using mpi ;\n" if build.include? 'with-mpi'
     end
 
     # we specify libdir too because the script is apparently broken
     bargs = ["--prefix=#{prefix}", "--libdir=#{lib}"]
 
-    if ARGV.include? "--with-icu"
+    if build.include? "with-icu"
       icu4c_prefix = Formula.factory('icu4c').prefix
       bargs << "--with-icu=#{icu4c_prefix}"
     end
@@ -93,12 +90,8 @@ class Boost < Formula
             "threading=multi",
             "install"]
 
-    args << "address-model=32_64" << "architecture=x86" << "pch=off" if ARGV.include? "--universal"
-    args << "--without-python" if ARGV.include? "--without-python"
-    # args << "toolset=clang"
-    args << 'cxxflags="-std=c++11"'
-    # args << 'cxxflags="-lstdc++"'
-    # args << 'linkflags="-lstdc++"'
+    args << "address-model=32_64" << "architecture=x86" << "pch=off" if build.universal?
+    args << "--without-python" if build.include? "without-python"
 
     system "./bootstrap.sh", *bargs
     # system "sed -i -e 's#using darwin ;#using darwin : : g++-4.7 ;#' project-config.jam"

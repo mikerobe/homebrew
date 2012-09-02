@@ -11,6 +11,8 @@ class Goffice < Formula
   depends_on 'libgsf'
   depends_on 'librsvg'
   depends_on 'gtk+'
+  depends_on 'pcre'
+  depends_on :x11
 
   def install
     system "./configure", "--disable-dependency-tracking",
