@@ -1,5 +1,7 @@
 module MacOS extend self
 
+  # This can be compared to numerics, strings, or symbols
+  # using the standard Ruby Comparable methods.
   def version
     require 'version'
     MacOSVersion.new(MACOS_VERSION.to_s)
@@ -74,7 +76,7 @@ module MacOS extend self
       # Xcode.prefix is pretty smart, so lets look inside to find the sdk
       opts << "#{Xcode.prefix}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX#{v}.sdk"
       # Xcode < 4.3 style
-      opts << "/Developer/SDKs/MacOS#{v}.sdk"
+      opts << "/Developer/SDKs/MacOSX#{v}.sdk"
       opts.map{|a| Pathname.new(a) }.detect { |p| p.directory? }
     end
   end
@@ -203,7 +205,7 @@ module MacOS extend self
         EOS
     end
 
-    StandardCompilers[xcode].all? { |method, build| MacOS.send(method) == build }
+    StandardCompilers[xcode].all? { |method, build| MacOS.send(method) == build } rescue false
   end
 
   def app_with_bundle_id id
@@ -221,7 +223,7 @@ module MacOS extend self
 
   def bottles_supported?
     # We support bottles on all versions of OS X except 32-bit Snow Leopard.
-    (Hardware.is_64_bit? or not MacOS.snow_leopard?) \
+    (Hardware.is_64_bit? or not MacOS.version >= :snow_leopard) \
       and HOMEBREW_PREFIX.to_s == '/usr/local' \
       and HOMEBREW_CELLAR.to_s == '/usr/local/Cellar' \
   end

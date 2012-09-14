@@ -6,6 +6,7 @@ require 'bottles'
 require 'extend/fileutils'
 require 'patches'
 require 'compilers'
+require 'build_environment'
 
 
 class Formula
@@ -140,6 +141,8 @@ class Formula
   # generally we don't want var stuff inside the keg
   def var; HOMEBREW_PREFIX+'var' end
 
+  # override this to provide a plist
+  def startup_plist; nil; end
   # plist name, i.e. the name of the launchd service
   def plist_name; 'homebrew.mxcl.'+name end
   def plist_path; prefix+(plist_name+'.plist') end
@@ -204,6 +207,7 @@ class Formula
   # redefining skip_clean? now deprecated
   def skip_clean? path
     return true if self.class.skip_clean_all?
+    return true if path.extname == '.la' and self.class.skip_clean_paths.include? :la
     to_check = path.relative_path_from(prefix).to_s
     self.class.skip_clean_paths.include? to_check
   end
@@ -433,6 +437,10 @@ class Formula
   def deps;         self.class.dependencies.deps;         end
   def requirements; self.class.dependencies.requirements; end
 
+  def env
+    @env ||= BuildEnvironment.new(self.class.environments)
+  end
+
   def conflicts
     requirements.select { |r| r.is_a? ConflictRequirement }
   end
@@ -643,6 +651,14 @@ private
       @stable.mirror(val)
     end
 
+    def environments
+      @environments ||= []
+    end
+
+    def env *settings
+      environments.concat [settings].flatten
+    end
+
     def dependencies
       @dependencies ||= DependencyCollector.new
     end
@@ -682,7 +698,8 @@ private
       end
       @skip_clean_paths ||= []
       [paths].flatten.each do |p|
-        @skip_clean_paths << p.to_s unless @skip_clean_paths.include? p.to_s
+        p = p.to_s unless p == :la
+        @skip_clean_paths << p unless @skip_clean_paths.include? p
       end
     end
 

@@ -2,7 +2,7 @@ require 'formula'
 
 class NeedsSnowLeopard < Requirement
   def satisfied?
-    MacOS.snow_leopard?
+    MacOS.version >= :snow_leopard
   end
 
   def message; <<-EOS.undent
@@ -23,6 +23,8 @@ class Ghc < Formula
     url 'http://www.haskell.org/ghc/dist/7.4.2/ghc-7.4.2-i386-apple-darwin.tar.bz2'
     sha1 '60f749893332d7c22bb4905004a67510992d8ef6'
   end
+
+  env :std
 
   depends_on NeedsSnowLeopard.new
 

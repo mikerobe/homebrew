@@ -24,6 +24,8 @@ class Lilypond < Formula
   url 'http://download.linuxaudio.org/lilypond/sources/v2.16/lilypond-2.16.0.tar.gz'
   sha1 'b5edfdd1332a5cee94bd31c7b1e8b08909c0a068'
 
+  env :userpaths
+
   depends_on TexInstalled.new
   depends_on 'pkg-config' => :build
   depends_on 'gettext'
@@ -38,7 +40,7 @@ class Lilypond < Formula
   skip_clean :all
 
   fails_with :clang do
-    build :all
+    build 421
     cause 'Strict C99 compliance error in a pointer conversion.'
   end
 

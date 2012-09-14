@@ -231,6 +231,16 @@ def check_for_latest_xcode
   end
 end
 
+def check_for_stray_developer_directory
+  if MacOS::Xcode.version >= "4.3" and File.exist? "/Developer/Library"
+    return <<-EOS.undent
+    You have leftover files from an older version of Xcode.
+    You should delete them using:
+      /Developer/Library/uninstall-developer-folder
+    EOS
+  end
+end
+
 def check_cc
   unless MacOS::CLT.installed?
     if MacOS::Xcode.version >= "4.3"
@@ -533,8 +543,11 @@ def check_for_config_scripts
 
   config_scripts = []
 
+  whitelist = %W[/usr/bin /usr/sbin /usr/X11/bin /usr/X11R6/bin /opt/X11/bin #{HOMEBREW_PREFIX}/bin #{HOMEBREW_PREFIX}/sbin]
+  whitelist.map! { |d| d.downcase }
+
   path_folders.each do |p|
-    next if ['/usr/bin', '/usr/sbin', '/usr/X11/bin', '/usr/X11R6/bin', "#{HOMEBREW_PREFIX}/bin", "#{HOMEBREW_PREFIX}/sbin", "/opt/X11/bin"].include? p
+    next if whitelist.include? p.downcase
     next if p =~ %r[^(#{real_cellar.to_s}|#{HOMEBREW_CELLAR.to_s})] if real_cellar
 
     configs = Dir["#{p}/*-config"]
