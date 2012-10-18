@@ -126,14 +126,14 @@ class Python3 < Formula
       install-scripts=#{scripts_folder}
     EOF
 
-    # Install distribute for python3
-    Distribute.new.brew do
-      system "#{bin}/python3.2", "setup.py", "install", "--force", "--verbose"
-      # Symlink to easy_install3 to match python3 command.
-      unless (scripts_folder/'easy_install3').exist?
-        ln_s scripts_folder/"easy_install", scripts_folder/"easy_install3"
-      end
-    end
+    # # Install distribute for python3
+    # Distribute.new.brew do
+    #   system "#{bin}/python3.2", "setup.py", "install", "--force", "--verbose"
+    #   # Symlink to easy_install3 to match python3 command.
+    #   unless (scripts_folder/'easy_install3').exist?
+    #     ln_s scripts_folder/"easy_install", scripts_folder/"easy_install3"
+    #   end
+    # end
     # Install pip-3.2 for python3
     Pip.new.brew { system "#{bin}/python3.2", "setup.py", "install", "--force", "--verbose" }
   end
