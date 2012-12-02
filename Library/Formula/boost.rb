@@ -116,7 +116,7 @@ class Boost < Formula
     system "./b2", *args
   end
 
-  def patches
-      { :p0 => "https://svn.boost.org/trac/boost/raw-attachment/ticket/4999/fix4999.patch" }
-  end
+  # def patches
+  #     { :p0 => "https://svn.boost.org/trac/boost/raw-attachment/ticket/4999/fix4999.patch" }
+  # end
 end
