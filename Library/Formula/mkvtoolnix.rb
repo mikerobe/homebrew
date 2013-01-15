@@ -1,4 +1,4 @@
-equire 'formula'
+require 'formula'
 
 class Mkvtoolnix < Formula
   url 'http://www.bunkus.org/videotools/mkvtoolnix/sources/mkvtoolnix-5.7.0.tar.bz2'
@@ -12,10 +12,10 @@ class Mkvtoolnix < Formula
   depends_on 'flac' => :optional
   depends_on 'lzo' => :optional
 
-  fails_with :clang do
-    build 318
-    cause "Compilation errors with older clang."
-  end
+  # fails_with :clang do
+  #   build 318
+  #   cause "Compilation errors with older clang."
+  # end
 
   # Patch to build with #define foreach BOOST_FOREACH
   # See: https://svn.boost.org/trac/boost/ticket/6131
@@ -24,18 +24,21 @@ class Mkvtoolnix < Formula
   end
 
   def install
-    ENV['CXX'] = 'g++-4.7'
-    ENV['CC'] = 'gcc-4.7'
-    ENV['LD'] = 'gcc-4.7'
-    ENV['CXXFLAGS'] = '-Os -Wall -Wextra -pipe -Woverloaded-virtual -std=c++11'
-    ENV['CFLAGS'] = '-Wall -Wextra -pipe'
+    # ENV['CXX'] = 'g++-4.7'
+    # ENV['CC'] = 'gcc-4.7'
+    # ENV['LD'] = 'gcc-4.7'
+    ENV['CXXFLAGS'] = '-std=c++11 -stdlib=libc++'
+    # ENV['CFLAGS'] = '-Wall -Wextra -pipe'
 
+    system "./autogen.sh"
     system "./configure",
-                          "CXXFLAGS=-std=c++11",
                           "--disable-debug",
+                          "--without-curl",
                           "--prefix=#{prefix}",
                           "--with-boost-libdir=#{HOMEBREW_PREFIX}/lib", # For non-/usr/local prefix
-                          "--with-boost-regex=boost_regex-mt" # via macports
+                          "--with-boost-filesystem=boost_filesystem-mt",
+                          "--with-boost-regex=boost_regex-mt",
+                          "--with-boost-system=boost_system-mt"
     system "./drake", "-j#{ENV.make_jobs}"
     system "./drake install"
   end
