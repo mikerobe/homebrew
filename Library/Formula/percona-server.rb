@@ -2,9 +2,9 @@ require 'formula'
 
 class PerconaServer < Formula
   homepage 'http://www.percona.com'
-  url 'http://www.percona.com/redir/downloads/Percona-Server-5.5/Percona-Server-5.5.28-29.1/source/Percona-Server-5.5.28-rel29.1.tar.gz'
-  version '5.5.28-29.1'
-  sha1 'c7b2803c440564beff124c9a5641daa643b9f909'
+  url 'http://www.percona.com/redir/downloads/Percona-Server-5.5/Percona-Server-5.5.29-29.4/source/Percona-Server-5.5.29-rel29.4.tar.gz'
+  version '5.5.29-29.4'
+  sha1 '0c02296414739a29e8a3c81ff7fab68a45d5b8a2'
 
   depends_on 'cmake' => :build
   depends_on 'readline'
@@ -21,6 +21,9 @@ class PerconaServer < Formula
 
   conflicts_with 'mariadb',
     :because => "percona-server and mariadb install the same binaries."
+
+  conflicts_with 'mysql-cluster',
+    :because => "percona-server and mysql-cluster install the same binaries."
 
   env :std if build.universal?
 

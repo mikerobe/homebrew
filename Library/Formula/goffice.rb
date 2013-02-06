@@ -6,8 +6,8 @@ class Goffice < Formula
   sha256 '3024f94b334a45ff3fb3d3d3df6c7076b062fb3ed48286cb1516d65537642a51'
 
   depends_on 'pkg-config' => :build
+  depends_on 'intltool' => :build
   depends_on 'gettext'
-  depends_on 'intltool'
   depends_on 'libgsf'
   depends_on 'librsvg'
   depends_on 'gtk+'

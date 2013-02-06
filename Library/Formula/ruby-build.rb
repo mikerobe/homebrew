@@ -2,8 +2,8 @@ require 'formula'
 
 class RubyBuild < Formula
   homepage 'https://github.com/sstephenson/ruby-build'
-  url 'https://github.com/sstephenson/ruby-build/tarball/v20121201'
-  sha1 '2376fe7cc68eb6cfdd2cb8b7f9319cb7795a40a0'
+  url 'https://github.com/sstephenson/ruby-build/tarball/v20130206'
+  sha1 '2a19a3420f831ba896aac161c8bb18c65ef272ab'
 
   head 'https://github.com/sstephenson/ruby-build.git'
 
@@ -15,8 +15,8 @@ class RubyBuild < Formula
     ENV['PREFIX'] = prefix
     system "./install.sh"
 
-    rbenv_plugins = "#{HOMEBREW_PREFIX}/var/lib/rbenv/plugins"
-    mkdir_p rbenv_plugins
-    ln_sf opt_prefix, "#{rbenv_plugins}/#{name}" unless build.include? 'without-rbenv'
+    unless build.include? 'without-rbenv'
+      ln_sf opt_prefix, "#{HOMEBREW_PREFIX}/var/lib/rbenv/plugins/#{name}"
+    end
   end
 end
