@@ -22,6 +22,7 @@ class Pcre < Formula
                           "--enable-unicode-properties",
                           "--enable-pcregrep-libz",
                           "--enable-pcregrep-libbz2"
+                          "--enable-jit"
     system "make test"
     system "make install"
   end

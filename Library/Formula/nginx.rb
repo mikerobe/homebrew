@@ -17,6 +17,7 @@ class Nginx < Formula
   option 'with-passenger', 'Compile with support for Phusion Passenger module'
   option 'with-webdav', 'Compile with support for WebDAV module'
   option 'with-debug', 'Compile with support for debug log'
+  option 'with-pcre-jit', 'Compile with support for PCRE JIT compilation'
 
   skip_clean 'logs'
 
@@ -57,6 +58,7 @@ class Nginx < Formula
     args << passenger_config_args if build.include? 'with-passenger'
     args << "--with-http_dav_module" if build.include? 'with-webdav'
     args << "--with-debug" if build.include? 'with-debug'
+    args << "--with-pcre-jit" if build.include? 'with-pcre-jit'
 
     system "./configure", *args
     system "make"
