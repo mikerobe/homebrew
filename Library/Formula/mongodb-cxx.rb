@@ -1,7 +1,7 @@
 require 'formula'
 
 class MongodbCxx < Formula
-  homepage 'http://www.mongodb.org/'
+  homepage 'http://docs.mongodb.org/ecosystem/drivers/cpp/'
   url 'http://downloads.mongodb.org/cxx-driver/mongodb-linux-x86_64-2.2.3.tgz'
   sha1 '2d8853270e63da55a24a30afc93c396f7ec57b94'
   head 'http://downloads.mongodb.org/cxx-driver/mongodb-linux-x86_64-latest.tgz'
