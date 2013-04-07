@@ -35,7 +35,7 @@ class Protobuf < Formula
 
   def caveats; <<-EOS.undent
     Editor support and examples have been installed to:
-      #{doc}/protobuf
+      #{doc}
     EOS
   end
 end

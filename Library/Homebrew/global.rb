@@ -3,7 +3,6 @@ require 'extend/pathname'
 require 'extend/ARGV'
 require 'extend/string'
 require 'extend/symbol'
-require 'extend/object'
 require 'utils'
 require 'exceptions'
 require 'set'
@@ -12,7 +11,7 @@ require 'rbconfig'
 ARGV.extend(HomebrewArgvExtension)
 
 HOMEBREW_VERSION = '0.9.4'
-HOMEBREW_WWW = 'http://mxcl.github.com/homebrew/'
+HOMEBREW_WWW = 'http://brew.sh'
 
 def cache
   if ENV['HOMEBREW_CACHE']
@@ -46,7 +45,7 @@ undef cache # we use a function to prevent adding home_cache to the global scope
 HOMEBREW_CACHE_FORMULA = HOMEBREW_CACHE+"Formula"
 
 if not defined? HOMEBREW_BREW_FILE
-  HOMEBREW_BREW_FILE = ENV['HOMEBREW_BREW_FILE'] || `which brew`.chomp
+  HOMEBREW_BREW_FILE = ENV['HOMEBREW_BREW_FILE'] || which('brew').to_s
 end
 
 HOMEBREW_PREFIX = Pathname.new(HOMEBREW_BREW_FILE).dirname.parent # Where we link under
