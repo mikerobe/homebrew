@@ -41,8 +41,13 @@ end
 
 class Node < Formula
   homepage 'http://nodejs.org/'
-  url 'http://nodejs.org/dist/v0.10.3/node-v0.10.3.tar.gz'
-  sha1 '4a1feb4ac18ede9e7193921f59fc181c88b1c7ba'
+  url 'http://nodejs.org/dist/v0.10.4/node-v0.10.4.tar.gz'
+  sha1 '901c1410b7c28a79644292567d3384255f3a6274'
+
+  devel do
+    url 'http://nodejs.org/dist/v0.11.0/node-v0.11.0.tar.gz'
+    sha1 '0402aae18f847238409e9d1a5ddd806beb5fe678'
+  end
 
   head 'https://github.com/joyent/node.git'
 
@@ -54,18 +59,16 @@ class Node < Formula
   depends_on PythonVersion
   depends_on 'v8' if build.with? 'shared-libs'
 
+  # gyp insists on using xcodebuild to find the SDK path, completely
+  # breaking CLT-only systems.
+  # See: https://code.google.com/p/gyp/issues/detail?id=292
+  depends_on :xcode
+
   fails_with :llvm do
     build 2326
   end
 
   def install
-    # Lie to `xcode-select` for now to work around a GYP bug that affects
-    # CLT-only systems:
-    #
-    #   http://code.google.com/p/gyp/issues/detail?id=292
-    #   joyent/node#3681
-    ENV['DEVELOPER_DIR'] = MacOS.dev_tools_path unless MacOS::Xcode.installed?
-
     args = %W{--prefix=#{prefix}}
 
     if build.with? 'shared-libs'
