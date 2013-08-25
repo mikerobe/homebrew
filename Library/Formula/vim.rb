@@ -8,6 +8,11 @@ class Vim < Formula
   url 'http://ftp.vim.org/pub/vim/unix/vim-7.4.tar.bz2'
   sha1 '601abf7cc2b5ab186f40d8790e542f86afca86b7'
 
+  # # Get stable versions from hg repo instead of downloading an increasing
+  # # number of separate patches.
+  # url 'https://vim.googlecode.com/hg/', :tag => 'v7-3-682'
+  # version '7.3.682'
+
   head 'https://vim.googlecode.com/hg/'
 
   # We only have special support for finding depends_on :python, but not yet for
@@ -18,8 +23,8 @@ class Vim < Formula
   option "override-system-vi", "Override system vi"
   option "disable-nls", "Build vim without National Language Support (translated messages, keymaps)"
 
-  LANGUAGES_OPTIONAL = %w(lua mzscheme perl tcl)
-  LANGUAGES_DEFAULT  = %w(ruby python)
+  LANGUAGES         = %w(lua mzscheme perl python python3 tcl ruby)
+  DEFAULT_LANGUAGES = %w(ruby python python3 perl)
 
   LANGUAGES_OPTIONAL.each do |language|
     option "with-#{language}", "Build vim with #{language} support"
@@ -74,6 +79,7 @@ class Vim < Formula
                           "--enable-cscope",
                           "--with-features=huge",
                           "--with-compiledby=Homebrew",
+                          "--enable-conceal",
                           *opts
     system "make"
     # If stripping the binaries is not enabled, vim will segfault with
@@ -81,5 +87,15 @@ class Vim < Formula
     # http://code.google.com/p/vim/issues/detail?id=114&thanks=114&ts=1361483471
     system "make", "install", "prefix=#{prefix}", "STRIP=/usr/bin/true"
     ln_s bin+'vim', bin+'vi' if build.include? 'override-system-vi'
+  end
+
+  def patches
+      # "https://raw.github.com/jezcope/vim-breakindent/master/breakindent.patch"
+      "https://retracile.net/raw-attachment/blog/2012/12/21/17.30/vim-7.3.682-breakindent.patch"
+      # "https://retracile.net/raw-attachment/blog/2011/08/23/21.30/vim-7.3.285-breakindent.patch"
+  end
+
+  def test
+    system "#{bin}/vim"
   end
 end

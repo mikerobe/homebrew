@@ -1,4 +1,4 @@
-require 'formula'
+equire 'formula'
 
 class Sxiv < Formula
   homepage 'https://github.com/muennich/sxiv'
